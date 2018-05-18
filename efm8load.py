@@ -143,7 +143,7 @@ class EFM8Loader:
                           % (device_name, variant_name, self.flash_size, self.flash_page_size))
                     return 1
 
-        #we did not detect a known device, scann all posible ids:
+        #we did not detect a known device, scan all possible ids:
         for device_id in range(0xFF):
             print("\r> checking device_id 0x%02X..." % (device_id), end="")
             sys.stdout.flush()

@@ -252,8 +252,6 @@ class EFM8Loader:
         #check for chip
         self.identify_chip()
 
-        self.debug = False
-
         #send autobaud training character
         self.send_autobaud_training()
 

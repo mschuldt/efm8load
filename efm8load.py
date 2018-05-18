@@ -36,6 +36,8 @@ COMMAND_SETUP    = 0x31
 COMMAND_ERASE    = 0x32
 COMMAND_WRITE    = 0x33
 COMMAND_VERIFY   = 0x34
+COMMAND_LOCK     = 0x35
+COMMAND_RUNAPP   = 0x36
 
 RESPONSE_ACK         = 0x40
 RESPONSE_RANGE_ERROR = 0x41
@@ -276,6 +278,9 @@ class EFM8Loader:
         self.write_pages_ih(ih)
         self.verify_pages_ih(ih)
 
+        if not self.run_app():
+            sys.exit( "ERROR: device reset failed" )
+
     def erase_pages_ih(self, ih):
         """ erase all pages that are occupied """
         last_address = ih.addresses()[-1]
@@ -375,6 +380,10 @@ class EFM8Loader:
                 sys.exit("FAILURE. will abort now\n")
 
         return 1
+
+    def run_app(self):
+        """ Reset the device in order to start the application """
+        return self.send(COMMAND_RUNAPP, [0, 0]) == RESPONSE_ACK
 
 if __name__ == "__main__":
     argp = argparse.ArgumentParser(description=( 'efm8load - a plain python implementation for '

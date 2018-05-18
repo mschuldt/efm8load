@@ -434,11 +434,6 @@ if __name__ == "__main__":
                       help='port (default is /dev/ttyUSB0)')
     args = argp.parse_args()
 
-    print("########################################")
-    print("# efm8load.py - (c) 2016 fishpepper.de #")
-    print("########################################")
-    print("")
-
     efm8loader = EFM8Loader(args.port, args.baudrate, debug=False)
 
     if (args.identify):

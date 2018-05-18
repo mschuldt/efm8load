@@ -169,7 +169,7 @@ class EFM8Loader:
         end   = start + self.device.flash_page_size-1
         start_hi = (start >> 8) & 0xFF
         start_lo = start & 0xFF
-        print("> will erase page %d (0x%04X-0x%04X)" % (page, start, end))
+        print("> erasing page %d (0x%04X-0x%04X)" % (page, start, end))
         return self.send(COMMAND_ERASE, [start_hi, start_lo])
 
     def write(self, address, data):
@@ -184,7 +184,7 @@ class EFM8Loader:
         else:
             data_excerpt = "".join('0x{:02x} '.format(x) for x in data)
 
-        print("> write at 0x%04X (%3d): %s" % (address, len(data), data_excerpt))
+        print("> writing 0x%04X (%3d): %s" % (address, len(data), data_excerpt))
 
         #send request
         address_hi = (address >> 8) & 0xFF
@@ -214,7 +214,7 @@ class EFM8Loader:
 
     def download(self, filename):
         print("> dumping flash content to '%s'" % filename)
-        print("> please note that this will take long")
+        print("> this will take a long time")
 
         #check for chip
         self.identify_chip()
@@ -247,7 +247,7 @@ class EFM8Loader:
             print("\r> flash[0x%04X] = 0x%02X" % (address, byte), end="")
             sys.stdout.flush()
 
-        print("\n> finished")
+        print("\n> done")
 
         #done, all flash contents have been read, now store this to the file
         ih.write_hex_file(filename)
@@ -332,7 +332,7 @@ class EFM8Loader:
 
         #all bytes except byte zero were written, do this now
         if (byte_zero != -1):
-            print("> will now write flash[0] = 0x%02X" % (byte_zero))
+            print("> writing flash[0] = 0x%02X" % (byte_zero))
             res = self.write(0, [byte_zero])
             if (res != RESPONSE_ACK):
                 print("> ERROR, write of flash[0] failed (response = %s)"
@@ -352,7 +352,7 @@ class EFM8Loader:
         #in case something went wrong during programming,
         #call this in order to clear page 0 so that the bootloader
         #will always start
-        print("> will now erase page 0 in order to re-enable bootloader autorun");
+        print("> erasing page 0 in order to re-enable bootloader autorun");
         self.erase_page(0)
 
     def verify_pages_ih(self, ih):

@@ -40,7 +40,10 @@ class RESPONSE:
     RANGE_ERROR = 0x41
     BAD_ID      = 0x42
     CRC_ERROR   = 0x43
-    TO_STR = { ACK: "ACK", RANGE_ERROR : "RANGE_ERROR", BAD_ID : "BAD_ID", CRC_ERROR : "CRC_ERROR" }
+    TO_STR = { ACK: "ACK",
+               RANGE_ERROR : "RANGE_ERROR",
+               BAD_ID : "BAD_ID",
+               CRC_ERROR : "CRC_ERROR" }
 
     @staticmethod
     def to_string(res):
@@ -130,12 +133,14 @@ class EFM8Loader:
                 variant_name = config[0]
 
                 if (self.check_id(device_id, variant_id)):
-                    print("> success, detected %s cpu (variant %s)" % (device_name, variant_name))
+                    print("> success, detected %s cpu (variant %s)"
+                          % (device_name, variant_name))
                     #set up chip data
                     self.flash_size               = config[1]
                     self.flash_page_size          = config[2]
                     self.flash_security_page_size = config[3]
-                    print("> detected %s cpu (variant %s, flash_size=%d, pagesize=%d)" % (device_name, variant_name, self.flash_size, self.flash_page_size))
+                    print("> detected %s cpu (variant %s, flash_size=%d, pagesize=%d)"
+                          % (device_name, variant_name, self.flash_size, self.flash_page_size))
                     return 1
 
         #we did not detect a known device, scann all posible ids:
@@ -144,8 +149,9 @@ class EFM8Loader:
             sys.stdout.flush()
             for variant_id in range(24):
                 if (self.check_id(device_id, variant_id)):
-                    sys.exit("\n> ERROR: unknown device detected: id=0x%02X, variant=0x%02X\n"\
-                             "         please add it to the devicelist. will exit now\n" % (device_id, variant_id))
+                    sys.exit("\n> ERROR: unknown device detected: id=0x%02X, variant=0x%02X\n"
+                             "         please add it to the devicelist. will exit now\n"
+                             % (device_id, variant_id))
 
         sys.exit("> ERROR: could not find any device...")
 
@@ -188,7 +194,8 @@ class EFM8Loader:
     def enable_flash_access(self):
         res = self.send(COMMAND.SETUP, [0xA5, 0xF1, 0x00])
         if (res != RESPONSE.ACK):
-            sys.exit("> ERROR enabling flash access, error code 0x%02X (%s)" % (res, RESPONSE.to_string(res)))
+            sys.exit("> ERROR enabling flash access, error code 0x%02X (%s)"
+                     % (res, RESPONSE.to_string(res)))
 
     def erase_page(self, page):
         start = page * self.flash_page_size
@@ -200,7 +207,8 @@ class EFM8Loader:
 
     def write(self, address, data):
         if (len(data) > 128):
-            sys.exit("ERROR: invalid chunksize, maximum allowed write is 128 bytes (%d)" % (len(data)))
+            sys.exit("ERROR: invalid chunksize, maximum allowed write is 128 bytes (%d)"
+                     % (len(data)))
         #print some of the data as debug info
         if (len(data) > 8):
             data_excerpt = "".join('0x{:02x} '.format(x) for x in data[:4]) + \
@@ -216,14 +224,16 @@ class EFM8Loader:
         address_lo = address & 0xFF
         res = self.send(COMMAND.WRITE, [address_hi, address_lo] + data)
         if not (res == RESPONSE.ACK):
-            sys.exit("ERROR: write failed at address 0x%04X (response = %s)" % (address, RESPONSE.to_string(res)))
+            sys.exit("ERROR: write failed at address 0x%04X (response = %s)"
+                     % (address, RESPONSE.to_string(res)))
         return res
 
     def verify(self, address, data):
         length = len(data)
         crc16 = crcmod.predefined.mkCrcFun('xmodem')(str(bytearray(data)))
 
-        if (self.debug): print("> verify address 0x%04X (len=%d, crc16=0x%04X)" % (address, length, crc16))
+        if (self.debug): print("> verify address 0x%04X (len=%d, crc16=0x%04X)"
+                               % (address, length, crc16))
         start_hi = (address >> 8) & 0xFF
         start_lo = address & 0xFF
         end      = address + length - 1
@@ -231,7 +241,8 @@ class EFM8Loader:
         end_lo   = end & 0xFF
         crc_hi   = (crc16 >> 8) & 0xFF
         crc_lo   = crc16 & 0xFF
-        res = self.send(COMMAND.VERIFY, [start_hi, start_lo] + [end_hi, end_lo] + [crc_hi, crc_lo])
+        res = self.send(COMMAND.VERIFY,
+                        [start_hi, start_lo] + [end_hi, end_lo] + [crc_hi, crc_lo])
         return res
 
     def download(self, filename):
@@ -336,7 +347,8 @@ class EFM8Loader:
             data_pos = 0
             #keep byte zero 0xFF in order to keep bootloader active (for now)
             if (start == 0):
-                print("> delaying write of flash[0] = 0x%02X to the end" % (data[0]))
+                print("> delaying write of flash[0] = 0x%02X to the end"
+                      % (data[0]))
                 byte_zero = data[0]
                 start = start + 1
                 data.pop(0)
@@ -358,13 +370,15 @@ class EFM8Loader:
             print("> will now write flash[0] = 0x%02X" % (byte_zero))
             res = self.write(0, [byte_zero])
             if (res != RESPONSE.ACK):
-                print("> ERROR, write of flash[0] failed (response = %s)" % (RESPONSE.to_string(res)))
+                print("> ERROR, write of flash[0] failed (response = %s)"
+                      % (RESPONSE.to_string(res)))
                 self.restore_bootloader_autostart()
                 sys.exit("FAILED")
             #verify
             res = self.verify(0, [byte_zero])
             if (res != RESPONSE.ACK):
-                print("> ERROR, verify of flash[0] failed (response = %s)" % (RESPONSE.to_string(res)))
+                print("> ERROR, verify of flash[0] failed (response = %s)"
+                      % (RESPONSE.to_string(res)))
                 self.self.restore_bootloader_autostarti()
                 sys.exit("FAILED")
 
@@ -398,16 +412,26 @@ class EFM8Loader:
         return 1
 
 if __name__ == "__main__":
-    argp = argparse.ArgumentParser(description='efm8load - a plain python implementation for the EFM8 usart bootloader protocol')
+    argp = argparse.ArgumentParser(description=( 'efm8load - a plain python implementation for '
+                                                 'the EFM8 usart bootloader protocol'))
 
     group = argp.add_mutually_exclusive_group()
-    group.add_argument("-w", "--write", metavar="filename", help="upload the given hex file to the flash memory")
-    group.add_argument("-r", "--read", metavar="filename", help="download the flash memory contents to the given filename") #action="store_true", nargs=1)
-    group.add_argument("-i", "--identify", help="identify the chip", action="store_true") #action="store_true", nargs=0)
-
-    #argp.add_argument('filename', help='firmware file to upload to the mcu')
-    argp.add_argument('-b', '--baudrate', type=int, default=115200, help='baudrate (default is 115200 baud)')
-    argp.add_argument('-p', '--port', default="/dev/ttyUSB0", help='port (default is /dev/ttyUSB0)')
+    group.add_argument("-w", "--write",
+                       metavar="filename",
+                       help="upload the given hex file to the flash memory")
+    group.add_argument("-r", "--read",
+                       metavar="filename",
+                       help="download the flash memory contents to the given filename")
+    group.add_argument("-i", "--identify",
+                       help="identify the chip",
+                       action="store_true")
+    argp.add_argument('-b', '--baudrate',
+                      type=int,
+                      default=115200,
+                      help='baudrate (default is 115200 baud)')
+    argp.add_argument('-p', '--port',
+                      default="/dev/ttyUSB0",
+                      help='port (default is /dev/ttyUSB0)')
     args = argp.parse_args()
 
     print("########################################")

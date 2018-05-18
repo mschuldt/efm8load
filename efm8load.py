@@ -57,7 +57,7 @@ class EFM8Loader:
 
     devicelist = {
         # DEVICE_ID : [ NAME, { DICT OF VARIANT_IDS } ]
-        #            VARIANT_ID: VARIANT_ID, VARIANT_NAME, FLASH_SIZE, PAGE_SIZE, SECURITY_PAGE_SIZE]
+        #            VARIANT_ID: VARIANT_NAME, FLASH_SIZE, PAGE_SIZE, SECURITY_PAGE_SIZE]
         0x16 : ["EFM8SB2", { } ],
         0x30 : ["EFM8BB1", {
             0x01: ["EFM8BB10F8G_QSOP24", 8*1024, 512, 512 ],

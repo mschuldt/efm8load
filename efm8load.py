@@ -59,10 +59,7 @@ class EFM8Loader:
         self.serial.port     = port
         self.serial.baudrate = baud
         self.serial.timeout  = 1
-        #defaults
-        self.flash_page_size = 512
-        self.flash_size      = 16*1024
-        self.flash_security_size = 512
+        self.device          = None
         #open serial connection
         self.open_port()
 
@@ -103,23 +100,16 @@ class EFM8Loader:
         self.enable_flash_access()
 
         #we will now iterate through all known device ids
-        for device_id, device in devices.iteritems():
-            device_name = device[0]
-            variant_ids = device[1]
-            if (self.debug): print("> checking for device %s" % (device_name))
-            for variant_id, config in variant_ids.iteritems():
+        for device in devices:
+            if (self.debug): print("> checking for device %s" % (device.name))
+            for variant in device.variants:
                 #test all possible variant ids
-                variant_name = config[0]
-
-                if (self.check_id(device_id, variant_id)):
+                if (self.check_id(device.id, variant.id)):
                     print("> success, detected %s cpu (variant %s)"
-                          % (device_name, variant_name))
-                    #set up chip data
-                    self.flash_size               = config[1]
-                    self.flash_page_size          = config[2]
-                    self.flash_security_page_size = config[3]
+                          % (device.name, variant.name))
+                    self.device=variant
                     print("> detected %s cpu (variant %s, flash_size=%d, pagesize=%d)"
-                          % (device_name, variant_name, self.flash_size, self.flash_page_size))
+                          % (device.name, variant.name, variant.flash_size, variant.flash_page_size))
                     return 1
 
         #we did not detect a known device, scan all possible ids:
@@ -177,8 +167,8 @@ class EFM8Loader:
                      % (res, response_string(res)))
 
     def erase_page(self, page):
-        start = page * self.flash_page_size
-        end   = start + self.flash_page_size-1
+        start = page * self.device.flash_page_size
+        end   = start + self.device.flash_page_size-1
         start_hi = (start >> 8) & 0xFF
         start_lo = start & 0xFF
         print("> will erase page %d (0x%04X-0x%04X)" % (page, start, end))
@@ -291,10 +281,10 @@ class EFM8Loader:
     def erase_pages_ih(self, ih):
         """ erase all pages that are occupied """
         last_address = ih.addresses()[-1]
-        last_page = int(last_address / self.flash_page_size)
+        last_page = int(last_address / self.device.flash_page_size)
         for page in range(last_page+1):
-            start = page * self.flash_page_size
-            end   = start +  self.flash_page_size-1
+            start = page * self.device.flash_page_size
+            end   = start +  self.device.flash_page_size-1
             page_used = False
             for x in ih.addresses():
                 if x >= start and x <= end:

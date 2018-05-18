@@ -105,8 +105,6 @@ class EFM8Loader:
             for variant in device.variants:
                 #test all possible variant ids
                 if (self.check_id(device.id, variant.id)):
-                    print("> success, detected %s cpu (variant %s)"
-                          % (device.name, variant.name))
                     self.device=variant
                     print("> detected %s cpu (variant %s, flash_size=%d, pagesize=%d)"
                           % (device.name, variant.name, variant.flash_size, variant.flash_page_size))

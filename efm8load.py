@@ -28,29 +28,26 @@ from intelhex import IntelHex
 # pip install intelhex --user
 # the same goes for the crcmod
 # pip install crcmod --user
-class COMMAND:
-    IDENTIFY = 0x30
-    SETUP    = 0x31
-    ERASE    = 0x32
-    WRITE    = 0x33
-    VERIFY   = 0x34
 
-class RESPONSE:
-    ACK         = 0x40
-    RANGE_ERROR = 0x41
-    BAD_ID      = 0x42
-    CRC_ERROR   = 0x43
-    TO_STR = { ACK: "ACK",
-               RANGE_ERROR : "RANGE_ERROR",
-               BAD_ID : "BAD_ID",
-               CRC_ERROR : "CRC_ERROR" }
 
-    @staticmethod
-    def to_string(res):
-        if res in RESPONSE.TO_STR:
-            return RESPONSE.TO_STR[res]
-        else:
-            return "unknown response"
+COMMAND_IDENTIFY = 0x30
+COMMAND_SETUP    = 0x31
+COMMAND_ERASE    = 0x32
+COMMAND_WRITE    = 0x33
+COMMAND_VERIFY   = 0x34
+
+RESPONSE_ACK         = 0x40
+RESPONSE_RANGE_ERROR = 0x41
+RESPONSE_BAD_ID      = 0x42
+RESPONSE_CRC_ERROR   = 0x43
+
+response_strings = { RESPONSE_ACK: "ACK",
+                     RESPONSE_RANGE_ERROR : "RANGE_ERROR",
+                     RESPONSE_BAD_ID : "BAD_ID",
+                     RESPONSE_CRC_ERROR : "CRC_ERROR" }
+
+def response_string(r):
+    return response_strings.get(r, "unknown response")
 
 class EFM8Loader:
     """A python implementation of the EFM8 bootloader protocol"""
@@ -189,13 +186,13 @@ class EFM8Loader:
 
     def check_id(self, device_id, derivative_id):
         #verify that the given id matches the target
-        return self.send(COMMAND.IDENTIFY, [device_id, derivative_id]) == RESPONSE.ACK
+        return self.send(COMMAND_IDENTIFY, [device_id, derivative_id]) == RESPONSE_ACK
 
     def enable_flash_access(self):
-        res = self.send(COMMAND.SETUP, [0xA5, 0xF1, 0x00])
-        if (res != RESPONSE.ACK):
+        res = self.send(COMMAND_SETUP, [0xA5, 0xF1, 0x00])
+        if (res != RESPONSE_ACK):
             sys.exit("> ERROR enabling flash access, error code 0x%02X (%s)"
-                     % (res, RESPONSE.to_string(res)))
+                     % (res, response_string(res)))
 
     def erase_page(self, page):
         start = page * self.flash_page_size
@@ -203,7 +200,7 @@ class EFM8Loader:
         start_hi = (start >> 8) & 0xFF
         start_lo = start & 0xFF
         print("> will erase page %d (0x%04X-0x%04X)" % (page, start, end))
-        return self.send(COMMAND.ERASE, [start_hi, start_lo])
+        return self.send(COMMAND_ERASE, [start_hi, start_lo])
 
     def write(self, address, data):
         if (len(data) > 128):
@@ -222,10 +219,10 @@ class EFM8Loader:
         #send request
         address_hi = (address >> 8) & 0xFF
         address_lo = address & 0xFF
-        res = self.send(COMMAND.WRITE, [address_hi, address_lo] + data)
-        if not (res == RESPONSE.ACK):
+        res = self.send(COMMAND_WRITE, [address_hi, address_lo] + data)
+        if not (res == RESPONSE_ACK):
             sys.exit("ERROR: write failed at address 0x%04X (response = %s)"
-                     % (address, RESPONSE.to_string(res)))
+                     % (address, response_string(res)))
         return res
 
     def verify(self, address, data):
@@ -241,7 +238,7 @@ class EFM8Loader:
         end_lo   = end & 0xFF
         crc_hi   = (crc16 >> 8) & 0xFF
         crc_lo   = crc16 & 0xFF
-        res = self.send(COMMAND.VERIFY,
+        res = self.send(COMMAND_VERIFY,
                         [start_hi, start_lo] + [end_hi, end_lo] + [crc_hi, crc_lo])
         return res
 
@@ -268,12 +265,12 @@ class EFM8Loader:
             #test one byte by byte
             #first check 0x00
             byte = 0
-            if (self.verify(address, [byte]) == RESPONSE.ACK):
+            if (self.verify(address, [byte]) == RESPONSE_ACK):
                 ih[address] = byte
             else:
                 #now start with 0xFF (empty flash)
                 for byte in range(0xFF, -1, -1):
-                    if (self.verify(address, [byte]) == RESPONSE.ACK):
+                    if (self.verify(address, [byte]) == RESPONSE_ACK):
                         #success, the flash content on this address euals <byte>
                         ih[address] = byte
                         break
@@ -358,7 +355,7 @@ class EFM8Loader:
             #now verify this segment
             print("> verifying segment... ", end="")
             sys.stdout.flush()
-            if (self.verify(start, data) == RESPONSE.ACK):
+            if (self.verify(start, data) == RESPONSE_ACK):
                 print("OK")
             else :
                 sys.exit("FAILURE. will abort now\n")
@@ -367,16 +364,16 @@ class EFM8Loader:
         if (byte_zero != -1):
             print("> will now write flash[0] = 0x%02X" % (byte_zero))
             res = self.write(0, [byte_zero])
-            if (res != RESPONSE.ACK):
+            if (res != RESPONSE_ACK):
                 print("> ERROR, write of flash[0] failed (response = %s)"
-                      % (RESPONSE.to_string(res)))
+                      % (response_string(res)))
                 self.restore_bootloader_autostart()
                 sys.exit("FAILED")
             #verify
             res = self.verify(0, [byte_zero])
-            if (res != RESPONSE.ACK):
+            if (res != RESPONSE_ACK):
                 print("> ERROR, verify of flash[0] failed (response = %s)"
-                      % (RESPONSE.to_string(res)))
+                      % (response_string(res)))
                 self.self.restore_bootloader_autostarti()
                 sys.exit("FAILED")
 
@@ -402,7 +399,7 @@ class EFM8Loader:
                 data.append(ih[x])
 
             #calc crc16
-            if (self.verify(start, data) == RESPONSE.ACK):
+            if (self.verify(start, data) == RESPONSE_ACK):
                 print("OK")
             else :
                 sys.exit("FAILURE. will abort now\n")

@@ -121,7 +121,7 @@ class EFM8Loader:
         self.enable_flash_access()
 
         #we will now iterate through all known device ids
-	for device_id, device in self.devicelist.iteritems():
+        for device_id, device in self.devicelist.iteritems():
             device_name = device[0]
             variant_ids = device[1]
             if (self.debug): print("> checking for device %s" % (device_name))
@@ -175,7 +175,7 @@ class EFM8Loader:
             else:
                 res = ord(res_bytes[0])
                 if(self.debug): print("> reply 0x%02X" % (res))
-		return res
+                return res
 
         except serial.SerialException:
             sys.exit("ERROR: failed to send data")
@@ -293,7 +293,7 @@ class EFM8Loader:
         #enable flash access
         self.enable_flash_access()
 
-	#erase pages where we are going to write
+        #erase pages where we are going to write
         self.erase_pages_ih(ih)
 
         #write all data bytes

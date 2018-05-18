@@ -432,9 +432,12 @@ if __name__ == "__main__":
     argp.add_argument('-p', '--port',
                       default="/dev/ttyUSB0",
                       help='port (default is /dev/ttyUSB0)')
+    argp.add_argument('-d', '--debug',
+                      action="store_true",
+                      help='verbose debug mode')
     args = argp.parse_args()
 
-    efm8loader = EFM8Loader(args.port, args.baudrate, debug=False)
+    efm8loader = EFM8Loader(args.port, args.baudrate, debug=args.debug)
 
     if (args.identify):
         efm8loader.identify_chip()

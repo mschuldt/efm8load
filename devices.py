@@ -29,6 +29,10 @@ def define_devices():
             Variant( 0x03, "EFM8BB21F16G_QFN20", 16 ),
     )
 
+    Device( 0x34,"EFM8BB3",
+            Variant(0x17,"EFM8BB31F32I_QSOP24", 32),
+    )
+
 devices = []
 
 class Variant:

@@ -23,6 +23,7 @@ import operator
 import crcmod
 from crcmod.predefined import *
 from intelhex import IntelHex
+from devices import devices
 
 # if you are missing the intelhex package, you can install it by
 # pip install intelhex --user
@@ -51,25 +52,6 @@ def response_string(r):
 
 class EFM8Loader:
     """A python implementation of the EFM8 bootloader protocol"""
-
-    devicelist = {
-        # DEVICE_ID : [ NAME, { DICT OF VARIANT_IDS } ]
-        #            VARIANT_ID: VARIANT_NAME, FLASH_SIZE, PAGE_SIZE, SECURITY_PAGE_SIZE]
-        0x16 : ["EFM8SB2", { } ],
-        0x30 : ["EFM8BB1", {
-            0x01: ["EFM8BB10F8G_QSOP24", 8*1024, 512, 512 ],
-            0x02: ["EFM8BB10F8G_QFN20" , 8*1024, 512, 512 ],
-            0x03: ["EFM8BB10F8G_SOIC16", 8*1024, 512, 512 ],
-            0x05: ["EFM8BB10F4G_QFN20" , 4*1024, 512, 512 ],
-            0x08: ["EFM8BB10F2G_QFN20" , 2*1024, 512, 512 ],
-            0x12: ["EFM8BB10F8I_QFN20" , 8*1024, 512, 521 ]
-        }],
-        0x32 : ["EFM8BB2", {
-            0x01: ["EFM8BB22F16G_QFN28" , 16*1024, 512, 512],
-            0x02: ["EFM8BB21F16G_QSOP24", 16*1024, 512, 512],
-            0x03: ["EFM8BB21F16G_QFN20" , 16*1024, 512, 512]
-        }]
-    }
 
     def __init__(self, port, baud, debug = False):
         self.debug           = debug
@@ -121,7 +103,7 @@ class EFM8Loader:
         self.enable_flash_access()
 
         #we will now iterate through all known device ids
-        for device_id, device in self.devicelist.iteritems():
+        for device_id, device in devices.iteritems():
             device_name = device[0]
             variant_ids = device[1]
             if (self.debug): print("> checking for device %s" % (device_name))
@@ -147,7 +129,7 @@ class EFM8Loader:
             for variant_id in range(24):
                 if (self.check_id(device_id, variant_id)):
                     sys.exit("\n> ERROR: unknown device detected: id=0x%02X, variant=0x%02X\n"
-                             "         please add it to the devicelist. will exit now\n"
+                             "         please add it to the list in devices.py. will exit now\n"
                              % (device_id, variant_id))
 
         sys.exit("> ERROR: could not find any device...")
